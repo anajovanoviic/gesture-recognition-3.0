@@ -8,8 +8,6 @@ from coordinates import Coordinates
 from keras import models
 from numpy import loadtxt
 
-#MODEL = "C:\\Users\\anadjj\\programs_ana\\master_thesis_final\\gesture-recognition\\refactored\\model_8_both_hands.h5"
-#MODEL = "C:\\Users\\anadjj\\programs_ana\\master-thesis-code-github-1-11-2025\\gesture-recognition\\model_8_both_hands_19_1_v3.h5"
 MODEL = r'model_8_both_hands_19_1_v3.h5'
 REALTIME_DATA = "C:\\Users\\anadjj\\programs_ana\\master_thesis_final\\gesture-recognition\\refactored\\realtimedata.csv" 
 
@@ -21,6 +19,9 @@ def run_mediapipe(mode):
     row_num = 0
     
     cap = cv2.VideoCapture(0)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    print(f"Camera FPS: {fps}")
+    
     with mp_hands.Hands(
         model_complexity=0,
         min_detection_confidence=0.5,
@@ -29,6 +30,8 @@ def run_mediapipe(mode):
       prediction = 5
       gesture = ""  # added per Copilot suggestion
       gesture_time = 0  # Track when gesture was detected # added per Copilot suggestion 
+      
+      hand_first_seen = None
        
       while cap.isOpened():
         success, image = cap.read()
@@ -46,6 +49,12 @@ def run_mediapipe(mode):
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         
         k = cv2.waitKey(5) & 0xFF
+        
+        if results.multi_hand_landmarks:
+            if hand_first_seen is None:
+                hand_first_seen = time.time()
+        else:
+            hand_first_seen = None 
         
         if results.multi_hand_landmarks:
           for hand_landmarks in results.multi_hand_landmarks:
@@ -88,8 +97,9 @@ def run_mediapipe(mode):
             
             elif mode == 1: 
               
-              # press 's' to save coordinate; ascii code 
-              if k == 115:
+              if results.multi_hand_landmarks and hand_first_seen and (time.time() - hand_first_seen >= 5):
+          
+                hand_first_seen = None  # Reset immediately to require 5 seconds for next gesture
                 print("App in the form for end users")
                 
                 save_data(hand_landmarks, mode)
