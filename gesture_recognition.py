@@ -97,9 +97,9 @@ def run_mediapipe(mode):
             
             elif mode == 1: 
               
-              if results.multi_hand_landmarks and hand_first_seen and (time.time() - hand_first_seen >= 5):
+              if results.multi_hand_landmarks and hand_first_seen and (time.time() - hand_first_seen >= 0.5):
           
-                hand_first_seen = None  # Reset immediately to require 5 seconds for next gesture
+                hand_first_seen = None  # Reset immediately to require 5(0.5) seconds for next gesture
                 print("App in the form for end users")
                 
                 save_data(hand_landmarks, mode)
